@@ -7,7 +7,7 @@ const Map = ({ startLocation, setLocation }) => (
       selectProps={{
         startLocation,
         onChange: setLocation,
-        placeholder: "Search...",
+        placeholder: "Type to search",
         noOptionsMessage: () => null,
       }}
     />
