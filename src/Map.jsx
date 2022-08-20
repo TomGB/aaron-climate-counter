@@ -7,6 +7,8 @@ const Map = ({ startLocation, setLocation }) => (
       selectProps={{
         startLocation,
         onChange: setLocation,
+        placeholder: "Search...",
+        noOptionsMessage: () => null,
       }}
     />
   </div>
