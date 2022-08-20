@@ -15,6 +15,34 @@ const carbonBusPerKm = 36
 const carbonCarPerKm = 240
 const carbonElectricCarPerKm = 54.77
 
+const submitForm = async ({
+  locationOfConference,
+  location,
+  distance,
+  modeOfTransport,
+  carbon,
+}) => {
+  await fetch("https://docs.google.com/forms/u/0/d/e/1FAIpQLSfILQKSwqJfUAZrj-ZLVILqW7taf2PIE1S8PBsK4_aTbh3HLQ/formResponse", {
+    "credentials": "include",
+    "headers": {
+        // "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-GB,en;q=0.5",
+        "Content-Type": "application/x-www-form-urlencoded",
+        // "Alt-Used": "docs.google.com",
+        // "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-User": "?1"
+    },
+    "referrer": "https://docs.google.com/forms/d/e/1FAIpQLSfILQKSwqJfUAZrj-ZLVILqW7taf2PIE1S8PBsK4_aTbh3HLQ/viewform?fbzx=1164834417680335055",
+    "body": `entry.2134495526=${encodeURIComponent(locationOfConference)}&entry.1444378660=${encodeURIComponent(location)}&entry.89429071=${encodeURIComponent(modeOfTransport)}&entry.1572327125=${encodeURIComponent(distance)}&entry.459287063=${encodeURIComponent(carbon)}`,
+    "method": "POST",
+    "mode": "cors"
+});
+}
+
 function toRad(Value) {
   return Value * Math.PI / 180;
 }
@@ -75,23 +103,30 @@ function App() {
     return setLocation;
   }
 
-  const calcCarbon = (type) => {
+  const calcCarbon = async (type) => {
+    let carbonRes = 0
+
     switch (type) {
-      case "car": 
-        setCarbon(distanceInKm * carbonCarPerKm)
-        break;
+      case "car":
+        carbonRes = distanceInKm * carbonCarPerKm
+        await setCarbon(carbonRes)
+        return carbonRes
       case "plane":
-        setCarbon(distanceInKm * carbonPlanePerKm)
-        break;
+        carbonRes = distanceInKm * carbonPlanePerKm
+        await setCarbon(carbonRes)
+        return carbonRes
       case "electric":
-        setCarbon(distanceInKm * carbonElectricCarPerKm)
-        break;
+        carbonRes = distanceInKm * carbonElectricCarPerKm
+        await setCarbon(carbonRes)
+        return carbonRes
       case "train":
-        setCarbon(distanceInKm * carbonTrainPerKm)
-        break;
+        carbonRes = distanceInKm * carbonTrainPerKm
+        await setCarbon(carbonRes)
+        return carbonRes
       case "bus":
-        setCarbon(distanceInKm * carbonBusPerKm)
-        break;
+        carbonRes = distanceInKm * carbonBusPerKm
+        await setCarbon(carbonRes)
+        return carbonRes
       default:
         console.log("other")
     }
@@ -128,30 +163,45 @@ function App() {
                 setStartLocation(null)
                 setCarbon(0)
                 setSelectedMode(null)
+                setDistanceInKm(null)
               }}type="primary" key="console">
                 Restart
               </Button>
             ]}
           />
         :
-        <div>
-              <h3>Where are you visiting this conference from?</h3>
-              <Map startLocation={startLocation} setLocation={setLocation} key="2"/>
-              <h3>What was your main mode of transport?</h3>
-              <div style={{ display: "inline-block" }}>
-                <Button onClick={() => setSelectedMode("plane")} type={selectedMode === "plane" ? "primary" : "secondary"} className="transport-button"><img src="icons/plane.svg" alt="plane-icon"/>Plane</Button>
-                <Button onClick={() => setSelectedMode("car")} type={selectedMode === "car" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Car</Button>
-                <Button onClick={() => setSelectedMode("electric")} type={selectedMode === "electric" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Electric</Button>
-                <Button onClick={() => setSelectedMode("bus")} type={selectedMode === "bus" ? "primary" : "secondary"} className="transport-button"><img src="icons/bus.svg" alt="plane-icon"/>Bus</Button>
-                <Button onClick={() => setSelectedMode("train")} type={selectedMode === "train" ? "primary" : "secondary"} className="transport-button"><img src="icons/train.svg" alt="plane-icon"/>Train</Button>
-              </div>
-              <br />
-              <Button onClick={() => {
-                calcCarbon(selectedMode)
-                setShowResult(true)
-              }} type="primary" disabled={selectedMode === null || startLocation === null}>Submit</Button>
+          <div>
+            <h3>Where are you visiting this conference from?</h3>
+            <Map startLocation={startLocation} setLocation={setLocation} key="2"/>
+            <h3>What was your main mode of transport?</h3>
+            <div style={{ display: "inline-block" }}>
+              <Button onClick={() => setSelectedMode("plane")} type={selectedMode === "plane" ? "primary" : "secondary"} className="transport-button"><img src="icons/plane.svg" alt="plane-icon"/>Plane</Button>
+              <Button onClick={() => setSelectedMode("car")} type={selectedMode === "car" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Car</Button>
+              <Button onClick={() => setSelectedMode("electric")} type={selectedMode === "electric" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Electric</Button>
+              <Button onClick={() => setSelectedMode("bus")} type={selectedMode === "bus" ? "primary" : "secondary"} className="transport-button"><img src="icons/bus.svg" alt="plane-icon"/>Bus</Button>
+              <Button onClick={() => setSelectedMode("train")} type={selectedMode === "train" ? "primary" : "secondary"} className="transport-button"><img src="icons/train.svg" alt="plane-icon"/>Train</Button>
             </div>
-          }
+            <br />
+            <Button onClick={async () => {
+              const carbonResult = await calcCarbon(selectedMode)
+              setShowResult(true)
+              console.log({
+                location: startLocation.label,
+                distance: Math.round(distanceInKm),
+                modeOfTransport: selectedMode,
+                carbon: Math.round(carbonResult),
+              })
+
+              submitForm({
+                locationOfConference: conferenceLocation.label,
+                location: startLocation.label,
+                distance: Math.round(distanceInKm),
+                modeOfTransport: selectedMode,
+                carbon: Math.round(carbonResult),
+              })
+            }} type="primary" disabled={selectedMode === null || startLocation === null}>Submit</Button>
+          </div>
+        }
         </div>
       </header>
     </div>
