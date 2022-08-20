@@ -35,7 +35,7 @@ function calcDistance(lat1, lon1, lat2, lon2)
 }
 
 function App() {
-  const [conventionLocation, setCLoc] = useState(null);
+  const [conferenceLocation, setCLoc] = useState(null);
   const [startLocation, setStartLocation] = useState(null);
 
   const [conferenceLat, setConferenceLat] = useState(0)
@@ -47,7 +47,7 @@ function App() {
 
   const [showResult, setShowResult] = useState(false)
 
-  const setConventionLocation = async (location) => {
+  const setconferenceLocation = async (location) => {
     const [place] = await geocodeByPlaceId(location.value.place_id)
     const{ lat, lng } = await getLatLng(place)
 
@@ -78,23 +78,18 @@ function App() {
   const calcCarbon = (type) => {
     switch (type) {
       case "car": 
-        setSelectedMode("car")
         setCarbon(distanceInKm * carbonCarPerKm)
         break;
       case "plane":
-        setSelectedMode("plane")
         setCarbon(distanceInKm * carbonPlanePerKm)
         break;
       case "electric":
-        setSelectedMode("electric")
         setCarbon(distanceInKm * carbonElectricCarPerKm)
         break;
       case "train":
-        setSelectedMode("train")
         setCarbon(distanceInKm * carbonTrainPerKm)
         break;
       case "bus":
-        setSelectedMode("bus")
         setCarbon(distanceInKm * carbonBusPerKm)
         break;
       default:
@@ -116,10 +111,10 @@ function App() {
         </div>
 
         <div style={{marginBottom: "auto"}}>
-          {conventionLocation == null ?
+          {conferenceLocation == null ?
             <div>
-              <h3>Where is the convention?</h3>
-              <Map startLocation={conventionLocation} setLocation={setConventionLocation} key="1"/>
+              <h3>Where is the conference?</h3>
+              <Map startLocation={conferenceLocation} setLocation={setconferenceLocation} key="1"/>
             </div>
           :
           showResult === true ?
@@ -140,18 +135,21 @@ function App() {
           />
         :
         <div>
-              <h3>Where are you visiting this convention from?</h3>
+              <h3>Where are you visiting this conference from?</h3>
               <Map startLocation={startLocation} setLocation={setLocation} key="2"/>
               <h3>What was your main mode of transport?</h3>
               <div style={{ display: "inline-block" }}>
-                <Button onClick={() => calcCarbon("plane")} type={selectedMode === "plane" ? "primary" : "secondary"} className="transport-button"><img src="icons/plane.svg" alt="plane-icon"/>Plane</Button>
-                <Button onClick={() => calcCarbon("car")} type={selectedMode === "car" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Car</Button>
-                <Button onClick={() => calcCarbon("electric")} type={selectedMode === "electric" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Electric</Button>
-                <Button onClick={() => calcCarbon("bus")} type={selectedMode === "bus" ? "primary" : "secondary"} className="transport-button"><img src="icons/bus.svg" alt="plane-icon"/>Bus</Button>
-                <Button onClick={() => calcCarbon("train")} type={selectedMode === "train" ? "primary" : "secondary"} className="transport-button"><img src="icons/train.svg" alt="plane-icon"/>Train</Button>
+                <Button onClick={() => setSelectedMode("plane")} type={selectedMode === "plane" ? "primary" : "secondary"} className="transport-button"><img src="icons/plane.svg" alt="plane-icon"/>Plane</Button>
+                <Button onClick={() => setSelectedMode("car")} type={selectedMode === "car" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Car</Button>
+                <Button onClick={() => setSelectedMode("electric")} type={selectedMode === "electric" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Electric</Button>
+                <Button onClick={() => setSelectedMode("bus")} type={selectedMode === "bus" ? "primary" : "secondary"} className="transport-button"><img src="icons/bus.svg" alt="plane-icon"/>Bus</Button>
+                <Button onClick={() => setSelectedMode("train")} type={selectedMode === "train" ? "primary" : "secondary"} className="transport-button"><img src="icons/train.svg" alt="plane-icon"/>Train</Button>
               </div>
               <br />
-              <Button onClick={() => setShowResult(true)} type="primary" disabled={carbon === null || startLocation === null}>Submit</Button>
+              <Button onClick={() => {
+                calcCarbon(selectedMode)
+                setShowResult(true)
+              }} type="primary" disabled={selectedMode === null || startLocation === null}>Submit</Button>
             </div>
           }
         </div>
