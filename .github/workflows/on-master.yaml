@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - main
+
+env:
+  PUBLIC_URL: /aaron-climate-counter/
+
 permissions:
   contents: write
 jobs:
