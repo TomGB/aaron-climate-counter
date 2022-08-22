@@ -15,6 +15,10 @@ const carbonBusPerKm = 36
 const carbonCarPerKm = 240
 const carbonElectricCarPerKm = 54.77
 
+window.onbeforeunload = function() {
+  return "Don't refresh";
+}
+
 const submitForm = async ({
   locationOfConference,
   location,
