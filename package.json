@@ -11,6 +11,7 @@
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "antd": "^4.22.6",
+    "lodash.mapvalues": "^4.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-google-places-autocomplete": "^3.4.0",
@@ -19,10 +20,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "npm run yaml-convert -- watch & react-scripts start",
+    "build": "npm run yaml-convert & react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "yaml-convert": "node ./yaml-convert.js"
   },
   "eslintConfig": {
     "extends": [
