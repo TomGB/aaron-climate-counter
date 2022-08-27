@@ -98,8 +98,9 @@ function App() {
           <Map startLocation={startLocation} setLocation={setLocation} key="2" />
           <h3>{config.transportQuestionText}</h3>
           <div style={{ display: "inline-block" }}>
-            {modesOfTransport.map(({ type }) =>
+            {modesOfTransport.map(({ type }, index) =>
               <Button
+                key={index}
                 onClick={() => setSelectedMode(type)}
                 type={selectedMode === type ? "primary" : "secondary"}
                 className={`transport-button ${type === "other" && "bike"}`}
@@ -168,7 +169,7 @@ function App() {
             display: "inline-block",
             verticalAlign: "middle"
           }} />
-          <h1 class="company-name">Embue</h1>
+          <h1 className="company-name">Embue</h1>
         </div>
 
         <div style={{ marginBottom: "auto" }}>
