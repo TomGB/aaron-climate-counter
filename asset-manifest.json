@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/aaron-climate-counter/static/css/main.88ada150.css",
-    "main.js": "/aaron-climate-counter/static/js/main.4ddbaa0b.js",
+    "main.css": "/aaron-climate-counter/static/css/main.7b78afe8.css",
+    "main.js": "/aaron-climate-counter/static/js/main.5383ae49.js",
     "static/js/787.2a77cb57.chunk.js": "/aaron-climate-counter/static/js/787.2a77cb57.chunk.js",
     "index.html": "/aaron-climate-counter/index.html",
-    "main.88ada150.css.map": "/aaron-climate-counter/static/css/main.88ada150.css.map",
-    "main.4ddbaa0b.js.map": "/aaron-climate-counter/static/js/main.4ddbaa0b.js.map",
+    "main.7b78afe8.css.map": "/aaron-climate-counter/static/css/main.7b78afe8.css.map",
+    "main.5383ae49.js.map": "/aaron-climate-counter/static/js/main.5383ae49.js.map",
     "787.2a77cb57.chunk.js.map": "/aaron-climate-counter/static/js/787.2a77cb57.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.88ada150.css",
-    "static/js/main.4ddbaa0b.js"
+    "static/css/main.7b78afe8.css",
+    "static/js/main.5383ae49.js"
   ]
 }
