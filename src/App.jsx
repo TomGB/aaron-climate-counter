@@ -1,47 +1,23 @@
 import React, { useEffect, useState } from 'react';
-// import settings from './settings.js'
 import './App.css';
 import 'antd/dist/antd.css';
-import Map from "./Map.jsx"
-import loadConfig from "./loadConfig.js"
 import { Button, Result } from 'antd';
 import { CloudOutlined } from '@ant-design/icons'
-import { geocodeByPlaceId, getLatLng, geocodeByAddress } from 'react-google-places-autocomplete';
+import {
+  geocodeByPlaceId,
+  getLatLng,
+} from "react-google-places-autocomplete";
+import Map from "./Map"
+import loadConfig from "./loadConfig"
 import submitGoogleForm from "./submitGoogleForm"
+import calcDistance from "./calcDistance"
+import getConferenceLatLng from "./getConferenceLatLng"
 
 const config = loadConfig()
-
 const { modesOfTransport } = config
 
 if (config.enablePreventRefresh) {
   window.onbeforeunload = () => config.preventRefreshText
-}
-
-const toRad = (x) => x * Math.PI / 180
-
-function calcDistance(lat1, lon1, lat2, lon2) {
-  var R = 6371; // km
-  var dLat = toRad(lat2 - lat1);
-  var dLon = toRad(lon2 - lon1);
-  var lat1Rad = toRad(lat1);
-  var lat2Rad = toRad(lat2);
-
-  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1Rad) * Math.cos(lat2Rad);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  var d = R * c;
-  return d;
-}
-
-const getConferenceLatLng = async (conferenceLocation) => {
-  try {
-    const [conferenceGeoCode] = await geocodeByAddress(conferenceLocation)
-    const [place] = await geocodeByPlaceId(conferenceGeoCode.place_id)
-    const { lat, lng } = await getLatLng(place)
-    return { lat, lng }
-  } catch (error) {
-    console.log(error)
-  }
 }
 
 function App() {
@@ -70,7 +46,7 @@ function App() {
     const carbonResult = await calcCarbon(selectedMode)
     setShowResult(true)
     const dataToBeSaved = {
-      locationOfConference: conferenceLocation.label,
+      locationOfConference: typeof conferenceLocation === "string" ? conferenceLocation : conferenceLocation.label,
       location: startLocation.label,
       distance: Math.round(distanceInKm),
       modeOfTransport: selectedMode,
@@ -150,8 +126,8 @@ function App() {
     const [placeData] = await geocodeByPlaceId(location.value.place_id)
     const { lat, lng } = await getLatLng(placeData)
 
-    setDistanceInKm(calcDistance(lat, lng, conferenceLatLng.lat, conferenceLatLng.lng) * 2)
     setStartLocation(location)
+    setDistanceInKm(calcDistance(lat, lng, conferenceLatLng.lat, conferenceLatLng.lng) * 2)
   }
 
   const calcCarbon = async (selectedType) => {
