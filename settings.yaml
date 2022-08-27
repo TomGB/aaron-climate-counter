@@ -1,0 +1,33 @@
+# Conference Location
+conferenceLocation: Victoria warehouse, Manchester
+
+# Sources for carbon emissions per km:
+# https://www.winacc.org.uk/downloads/STAP/Shorter_Transport%20Emissions%20Report_110328.pdf
+# https://www.statista.com/statistics/1233337/carbon-footprint-of-travel-per-kilometer-by-mode-of-transport-uk/
+
+# Carbon is measured in grams of carbon per km
+# Ask tom to change the label names as they are currently linked with the icons
+
+modesOfTransport:
+  - type: electric
+    carbon: 54.77
+  - type: car
+    carbon: 240
+  - type: train
+    carbon: 68
+  - type: bus
+    carbon: 36
+  - type: plane
+    carbon: 254
+  - type: other
+    carbon: 0
+
+# Show a warning message when the user attemptes to press back or refresh (only shown on certain browsers)
+enablePreventRefresh: true
+preventRefreshText: "Don't refresh"
+
+locationQuestionText: Where are you visiting this conference from?
+transportQuestionText: What was your main mode of transport?
+
+resultText: You produced @carbon@ Kg of CO₂
+resultSubText: Thanks and enjoy the conference.

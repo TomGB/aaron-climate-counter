@@ -1,77 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
-import Map from "./Map.jsx"
 import { Button, Result } from 'antd';
 import { CloudOutlined } from '@ant-design/icons'
-import { geocodeByPlaceId, getLatLng } from 'react-google-places-autocomplete';
+import {
+  geocodeByPlaceId,
+  getLatLng,
+} from "react-google-places-autocomplete";
+import Map from "./Map"
+import loadConfig from "./loadConfig"
+import submitGoogleForm from "./submitGoogleForm"
+import calcDistance from "./calcDistance"
+import getConferenceLatLng from "./getConferenceLatLng"
 
-// https://www.winacc.org.uk/downloads/STAP/Shorter_Transport%20Emissions%20Report_110328.pdf
-// https://www.statista.com/statistics/1233337/carbon-footprint-of-travel-per-kilometer-by-mode-of-transport-uk/
+const config = loadConfig()
+const { modesOfTransport } = config
 
-const carbonPlanePerKm = 254
-const carbonTrainPerKm = 68
-const carbonBusPerKm = 36
-const carbonCarPerKm = 240
-const carbonElectricCarPerKm = 54.77
-
-window.onbeforeunload = function() {
-  return "Don't refresh";
-}
-
-const submitForm = async ({
-  locationOfConference,
-  location,
-  distance,
-  modeOfTransport,
-  carbon,
-}) => {
-  await fetch("https://docs.google.com/forms/u/0/d/e/1FAIpQLSfILQKSwqJfUAZrj-ZLVILqW7taf2PIE1S8PBsK4_aTbh3HLQ/formResponse", {
-    "credentials": "include",
-    "headers": {
-        // "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.5",
-        "Content-Type": "application/x-www-form-urlencoded",
-        // "Alt-Used": "docs.google.com",
-        // "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "same-origin",
-        "Sec-Fetch-User": "?1"
-    },
-    "referrer": "https://docs.google.com/forms/d/e/1FAIpQLSfILQKSwqJfUAZrj-ZLVILqW7taf2PIE1S8PBsK4_aTbh3HLQ/viewform?fbzx=1164834417680335055",
-    "body": `entry.2134495526=${encodeURIComponent(locationOfConference)}&entry.1444378660=${encodeURIComponent(location)}&entry.89429071=${encodeURIComponent(modeOfTransport)}&entry.1572327125=${encodeURIComponent(distance)}&entry.459287063=${encodeURIComponent(carbon)}`,
-    "method": "POST",
-    "mode": "cors"
-});
-}
-
-function toRad(Value) {
-  return Value * Math.PI / 180;
-}
-
-function calcDistance(lat1, lon1, lat2, lon2) 
-{
-  var R = 6371; // km
-  var dLat = toRad(lat2-lat1);
-  var dLon = toRad(lon2-lon1);
-  var lat1Rad = toRad(lat1);
-  var lat2Rad = toRad(lat2);
-
-  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1Rad) * Math.cos(lat2Rad); 
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  var d = R * c;
-  return d;
+if (config.enablePreventRefresh) {
+  window.onbeforeunload = () => config.preventRefreshText
 }
 
 function App() {
-  const [conferenceLocation, setCLoc] = useState(null);
-  const [startLocation, setStartLocation] = useState(null);
+  const [conferenceLocation, setCLoc] = useState(config.conferenceLocation);
+  const [conferenceLatLng, setConferenceLatLng] = useState({})
 
-  const [conferenceLat, setConferenceLat] = useState(0)
-  const [conferenceLng, setConferenceLng] = useState(0)
+  const [startLocation, setStartLocation] = useState(null);
 
   const [distanceInKm, setDistanceInKm] = useState(0)
   const [carbon, setCarbon] = useState(null)
@@ -79,133 +32,124 @@ function App() {
 
   const [showResult, setShowResult] = useState(false)
 
+  useEffect(() => {
+    const requestLocationForConference = async () => {
+      await new Promise(res => setTimeout(res, 1000))
+      const conferenceLatLongResponse = await getConferenceLatLng(config.conferenceLocation)
+      console.log({ conferenceLatLongResponse })
+      setConferenceLatLng(conferenceLatLongResponse)
+    }
+    requestLocationForConference()
+  }, [])
+
+  const submitForm = async () => {
+    const carbonResult = await calcCarbon(selectedMode)
+    setShowResult(true)
+    const dataToBeSaved = {
+      locationOfConference: typeof conferenceLocation === "string" ? conferenceLocation : conferenceLocation.label,
+      location: startLocation.label,
+      distance: Math.round(distanceInKm),
+      modeOfTransport: selectedMode,
+      carbon: Math.round(carbonResult),
+    }
+    console.log(dataToBeSaved)
+    submitGoogleForm(dataToBeSaved)
+  }
+
+
+  const Questions = () => {
+    if (conferenceLocation === null) {
+      return (
+        <div>
+          <h3>Where is the conference?</h3>
+          <Map startLocation={conferenceLocation} setLocation={setconferenceLocation} key="1" />
+        </div>
+      )
+    }
+
+    if (showResult === false) {
+      return (
+        <div>
+          <h3>{config.locationQuestionText}</h3>
+          <Map startLocation={startLocation} setLocation={setLocation} key="2" />
+          <h3>{config.transportQuestionText}</h3>
+          <div style={{ display: "inline-block" }}>
+            {modesOfTransport.map(({ type }, index) =>
+              <Button
+                key={index}
+                onClick={() => setSelectedMode(type)}
+                type={selectedMode === type ? "primary" : "secondary"}
+                className={`transport-button ${type === "other" && "bike"}`}
+              >
+                <img src={`icons/${type}.svg`} alt={`${type}-icon`} />
+                {type}
+              </Button>
+            )}
+          </div>
+          <br />
+          <Button onClick={submitForm} type="primary" disabled={selectedMode === null || startLocation === null}>Submit</Button>
+        </div>
+      )
+    }
+
+    return (
+      <Result
+        icon={<CloudOutlined />}
+        title={config.resultText.replace("@carbon@", Math.round(carbon / 100) / 10)}
+        subTitle={config.resultSubText}
+        extra={[
+          <Button onClick={() => {
+            setShowResult(false)
+            setStartLocation(null)
+            setCarbon(0)
+            setSelectedMode(null)
+            setDistanceInKm(null)
+          }} type="primary" key="console">
+            Restart
+          </Button>
+        ]}
+      />
+    )
+  }
+
+
   const setconferenceLocation = async (location) => {
     const [place] = await geocodeByPlaceId(location.value.place_id)
-    const{ lat, lng } = await getLatLng(place)
-
-    setConferenceLat(lat)
-    setConferenceLng(lng)
-
+    const { lat, lng } = await getLatLng(place)
+    setConferenceLatLng({ lat, lng })
     setCLoc(location)
   };
 
-  const setupSetLocation = (setStartLocation) => {
-    const setLocation = async (location: string) => {
-      console.log(location)
-  
-      const [placeData] = await geocodeByPlaceId(location.value.place_id)
-      const { lat, lng } = await getLatLng(placeData)
-  
-      console.log({ lat, lng })
+  const setLocation = async (location: string) => {
+    console.log(location)
 
-      console.log({ lat, lng, conferenceLat, conferenceLng })
-  
-      setDistanceInKm(calcDistance(lat, lng, conferenceLat, conferenceLng) * 2)
-      setStartLocation(location)
-    }
-  
-    return setLocation;
+    const [placeData] = await geocodeByPlaceId(location.value.place_id)
+    const { lat, lng } = await getLatLng(placeData)
+
+    setStartLocation(location)
+    setDistanceInKm(calcDistance(lat, lng, conferenceLatLng.lat, conferenceLatLng.lng) * 2)
   }
 
-  const calcCarbon = async (type) => {
-    let carbonRes = 0
-
-    switch (type) {
-      case "car":
-        carbonRes = distanceInKm * carbonCarPerKm
-        await setCarbon(carbonRes)
-        return carbonRes
-      case "plane":
-        carbonRes = distanceInKm * carbonPlanePerKm
-        await setCarbon(carbonRes)
-        return carbonRes
-      case "electric":
-        carbonRes = distanceInKm * carbonElectricCarPerKm
-        await setCarbon(carbonRes)
-        return carbonRes
-      case "train":
-        carbonRes = distanceInKm * carbonTrainPerKm
-        await setCarbon(carbonRes)
-        return carbonRes
-      case "bus":
-        carbonRes = distanceInKm * carbonBusPerKm
-        await setCarbon(carbonRes)
-        return carbonRes
-      default:
-        console.log("other")
-    }
+  const calcCarbon = async (selectedType) => {
+    const carbonMultiplier = modesOfTransport.find(({ type }) => type === selectedType).carbon
+    const carbonRes = distanceInKm * carbonMultiplier
+    await setCarbon(carbonRes)
+    return carbonRes
   }
-
-  const setLocation =  setupSetLocation(setStartLocation);
 
   return (
     <div className="App" style={{ textAlign: "center" }}>
       <header className="App-header">
         <div style={{ marginBottom: "auto" }}>
           <img alt="embue-logo" src="embue.webp" style={{
-            display:"inline-block",
+            display: "inline-block",
             verticalAlign: "middle"
           }} />
-          <h1 style={{ margin: "0px", color: "#374F5F", paddingLeft: "20px", display:"inline-block", verticalAlign: "middle" }}>Embue</h1>
+          <h1 className="company-name">Embue</h1>
         </div>
 
-        <div style={{marginBottom: "auto"}}>
-          {conferenceLocation == null ?
-            <div>
-              <h3>Where is the conference?</h3>
-              <Map startLocation={conferenceLocation} setLocation={setconferenceLocation} key="1"/>
-            </div>
-          :
-          showResult === true ?
-            <Result
-            icon={<CloudOutlined />}
-            title={`You produced ${Math.round(carbon / 1000)} Kg of CO₂`}
-            subTitle="Thanks and enjoy the conference."
-            extra={[
-              <Button onClick={() => {
-                setShowResult(false)
-                setStartLocation(null)
-                setCarbon(0)
-                setSelectedMode(null)
-                setDistanceInKm(null)
-              }}type="primary" key="console">
-                Restart
-              </Button>
-            ]}
-          />
-        :
-          <div>
-            <h3>Where are you visiting this conference from?</h3>
-            <Map startLocation={startLocation} setLocation={setLocation} key="2"/>
-            <h3>What was your main mode of transport?</h3>
-            <div style={{ display: "inline-block" }}>
-              <Button onClick={() => setSelectedMode("plane")} type={selectedMode === "plane" ? "primary" : "secondary"} className="transport-button"><img src="icons/plane.svg" alt="plane-icon"/>Plane</Button>
-              <Button onClick={() => setSelectedMode("car")} type={selectedMode === "car" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Car</Button>
-              <Button onClick={() => setSelectedMode("electric")} type={selectedMode === "electric" ? "primary" : "secondary"} className="transport-button"><img src="icons/car.svg" alt="plane-icon"/>Electric</Button>
-              <Button onClick={() => setSelectedMode("bus")} type={selectedMode === "bus" ? "primary" : "secondary"} className="transport-button"><img src="icons/bus.svg" alt="plane-icon"/>Bus</Button>
-              <Button onClick={() => setSelectedMode("train")} type={selectedMode === "train" ? "primary" : "secondary"} className="transport-button"><img src="icons/train.svg" alt="plane-icon"/>Train</Button>
-            </div>
-            <br />
-            <Button onClick={async () => {
-              const carbonResult = await calcCarbon(selectedMode)
-              setShowResult(true)
-              console.log({
-                location: startLocation.label,
-                distance: Math.round(distanceInKm),
-                modeOfTransport: selectedMode,
-                carbon: Math.round(carbonResult),
-              })
-
-              submitForm({
-                locationOfConference: conferenceLocation.label,
-                location: startLocation.label,
-                distance: Math.round(distanceInKm),
-                modeOfTransport: selectedMode,
-                carbon: Math.round(carbonResult),
-              })
-            }} type="primary" disabled={selectedMode === null || startLocation === null}>Submit</Button>
-          </div>
-        }
+        <div style={{ marginBottom: "auto" }}>
+          <Questions />
         </div>
       </header>
     </div>
