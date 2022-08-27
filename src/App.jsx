@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 // import settings from './settings.js'
 import './App.css';
 import 'antd/dist/antd.css';
@@ -52,32 +52,36 @@ function App() {
     showResult: false,
   });
 
-  const [conferenceLocation, setCLoc] = useState(config.conferenceLocation);
-  const [conferenceLatLng, setConferenceLatLng] = useState({})
-
-  const [startLocation, setStartLocation] = useState(null);
-
-  const [distanceInKm, setDistanceInKm] = useState(0)
-  const [carbon, setCarbon] = useState(null)
-  const [selectedMode, setSelectedMode] = useState(null)
-
-  const [showResult, setShowResult] = useState(false)
+  const updateGlobalContext = input => {
+    console.log("update global context called with")
+    console.log(input)
+    console.log({ globalContext })
+    setGlobalContext({
+      ...globalContext,
+      ...input
+    })
+    console.log({ globalContext })
+  }
 
   useEffect(() => {
     const requestLocationForConference = async () => {
       await new Promise(res => setTimeout(res, 1000))
-      const conferenceLatLongResponse = await getConferenceLatLng(config.conferenceLocation)
-      console.log({ conferenceLatLongResponse })
-      setConferenceLatLng(conferenceLatLongResponse)
+      const { lat, lng } = await getConferenceLatLng(config.conferenceLocation)
+      updateGlobalContext({ conferenceLat: lat, conferenceLng: lng })
     }
-    requestLocationForConference()
+
+    if (config.conferenceLocation) {
+      requestLocationForConference()
+    }
   }, [])
 
-  const submitForm = async () => {
+  const submitForm = ({ globalContext, updateGlobalContext }) => async () => {
+    const { selectedMode, startLocation, distanceInKm } = globalContext;
     const carbonResult = await calcCarbon(selectedMode)
-    setShowResult(true)
+    updateGlobalContext({ showResult: true })
+
     const dataToBeSaved = {
-      locationOfConference: conferenceLocation.label,
+      locationOfConference: globalContext.conferenceLocation.label,
       location: startLocation.label,
       distance: Math.round(distanceInKm),
       modeOfTransport: selectedMode,
@@ -87,28 +91,30 @@ function App() {
     submitGoogleForm(dataToBeSaved)
   }
 
-
   const Questions = () => {
-    if (conferenceLocation === null) {
+    if (globalContext.conferenceLocation === null) {
       return (
         <div>
           <h3>Where is the conference?</h3>
-          <Map startLocation={conferenceLocation} setLocation={setconferenceLocation} key="1" />
+          <Map
+            startLocation={globalContext.conferenceLocation}
+            setLocation={conferenceLocation => updateGlobalContext({ conferenceLocation })}
+            key="1" />
         </div>
       )
     }
 
-    if (showResult === false) {
+    if (globalContext.showResult === false) {
       return (
         <div>
           <h3>{config.locationQuestionText}</h3>
-          <Map startLocation={startLocation} setLocation={setLocation} key="2" />
+          <Map startLocation={globalContext.startLocation} setLocation={setLocation} key="2" />
           <h3>{config.transportQuestionText}</h3>
           <div style={{ display: "inline-block" }}>
             {modesOfTransport.map(({ type }) =>
               <Button
-                onClick={() => setSelectedMode(type)}
-                type={selectedMode === type ? "primary" : "secondary"}
+                onClick={() => updateGlobalContext({ selectedMode: type })}
+                type={globalContext.selectedMode === type ? "primary" : "secondary"}
                 className={`transport-button ${type === "other" && "bike"}`}
               >
                 <img src={`icons/${type}.svg`} alt={`${type}-icon`} />
@@ -117,7 +123,7 @@ function App() {
             )}
           </div>
           <br />
-          <Button onClick={submitForm} type="primary" disabled={selectedMode === null || startLocation === null}>Submit</Button>
+          <Button onClick={submitForm({ globalContext, updateGlobalContext })} type="primary" disabled={globalContext.selectedMode === null || globalContext.startLocation === null}>Submit</Button>
         </div>
       )
     }
@@ -125,15 +131,17 @@ function App() {
     return (
       <Result
         icon={<CloudOutlined />}
-        title={config.resultText.replace("@carbon@", Math.round(carbon / 100) / 10)}
+        title={config.resultText.replace("@carbon@", Math.round(globalContext.carbon / 100) / 10)}
         subTitle={config.resultSubText}
         extra={[
           <Button onClick={() => {
-            setShowResult(false)
-            setStartLocation(null)
-            setCarbon(0)
-            setSelectedMode(null)
-            setDistanceInKm(null)
+            updateGlobalContext({
+              showResult: false,
+              startLocation: null,
+              carbon: 0,
+              selectedMode: null,
+              distanceInKm: null,
+            })
           }} type="primary" key="console">
             Restart
           </Button>
@@ -142,33 +150,29 @@ function App() {
     )
   }
 
-
-  const setconferenceLocation = async (location) => {
-    const [place] = await geocodeByPlaceId(location.value.place_id)
-    const { lat, lng } = await getLatLng(place)
-    setConferenceLatLng({ lat, lng })
-    setCLoc(location)
-  };
-
-  const setLocation = async (location: string) => {
+  const setLocation = async (location) => {
     console.log(location)
 
     const [placeData] = await geocodeByPlaceId(location.value.place_id)
     const { lat, lng } = await getLatLng(placeData)
 
-    setDistanceInKm(calcDistance(lat, lng, conferenceLatLng.lat, conferenceLatLng.lng) * 2)
-    setStartLocation(location)
+    updateGlobalContext({
+      distanceInKm: calcDistance(lat, lng, globalContext.conferenceLat, globalContext.conferenceLng) * 2,
+      startLocation: location,
+    })
   }
 
   const calcCarbon = async (selectedType) => {
     const carbonMultiplier = modesOfTransport.find(({ type }) => type === selectedType).carbon
-    const carbonRes = distanceInKm * carbonMultiplier
-    await setCarbon(carbonRes)
+    const carbonRes = globalContext.distanceInKm * carbonMultiplier
+    updateGlobalContext({
+      carbon: carbonRes,
+    })
     return carbonRes
   }
 
   return (
-    <GlobalContext.Provider value={{ globalContext, setGlobalContext }}>
+    <GlobalContext.Provider value={{ globalContext, updateGlobalContext }}>
       <div className="App" style={{ textAlign: "center" }}>
         <header className="App-header">
           <div style={{ marginBottom: "auto" }}>
