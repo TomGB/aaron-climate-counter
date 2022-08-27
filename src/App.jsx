@@ -9,8 +9,6 @@ import { CloudOutlined } from '@ant-design/icons'
 import { geocodeByPlaceId, getLatLng, geocodeByAddress } from 'react-google-places-autocomplete';
 import submitGoogleForm from "./submitGoogleForm"
 
-const GlobalContext = React.createContext(null);
-
 const config = loadConfig()
 
 const { modesOfTransport } = config
@@ -47,11 +45,6 @@ const getConferenceLatLng = async (conferenceLocation) => {
 }
 
 function App() {
-  const [globalContext, setGlobalContext] = useState({
-    conferenceLocation: config.conferenceLocation,
-    showResult: false,
-  });
-
   const [conferenceLocation, setCLoc] = useState(config.conferenceLocation);
   const [conferenceLatLng, setConferenceLatLng] = useState({})
 
@@ -168,23 +161,21 @@ function App() {
   }
 
   return (
-    <GlobalContext.Provider value={{ globalContext, setGlobalContext }}>
-      <div className="App" style={{ textAlign: "center" }}>
-        <header className="App-header">
-          <div style={{ marginBottom: "auto" }}>
-            <img alt="embue-logo" src="embue.webp" style={{
-              display: "inline-block",
-              verticalAlign: "middle"
-            }} />
-            <h1 class="company-name">Embue</h1>
-          </div>
+    <div className="App" style={{ textAlign: "center" }}>
+      <header className="App-header">
+        <div style={{ marginBottom: "auto" }}>
+          <img alt="embue-logo" src="embue.webp" style={{
+            display: "inline-block",
+            verticalAlign: "middle"
+          }} />
+          <h1 class="company-name">Embue</h1>
+        </div>
 
-          <div style={{ marginBottom: "auto" }}>
-            <Questions />
-          </div>
-        </header>
-      </div>
-    </GlobalContext.Provider>
+        <div style={{ marginBottom: "auto" }}>
+          <Questions />
+        </div>
+      </header>
+    </div>
   );
 }
 
