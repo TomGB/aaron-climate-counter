@@ -1,13 +1,22 @@
 import mapValues from "lodash.mapvalues";
 
 const submitGoogleForm = async (input) => {
-  const { locationOfConference, location, modeOfTransport, distance, carbon } =
-    mapValues(input, encodeURIComponent);
+  const {
+    locationOfConference,
+    location,
+    modeOfTransport,
+    distance,
+    carbon,
+    transportMultiplier,
+    assumedDistance,
+  } = mapValues(input, encodeURIComponent);
 
   const body = [
     `entry.2134495526=${locationOfConference}`,
     `entry.1444378660=${location}`,
     `entry.89429071=${modeOfTransport}`,
+    `entry.720315667=${transportMultiplier}`,
+    `entry.1634644785=${assumedDistance}`,
     `entry.1572327125=${distance}`,
     `entry.459287063=${carbon}`,
   ].join("&");

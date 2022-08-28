@@ -5,6 +5,9 @@ conferenceLocation: Victoria warehouse, Manchester
 # https://www.winacc.org.uk/downloads/STAP/Shorter_Transport%20Emissions%20Report_110328.pdf
 # https://www.statista.com/statistics/1233337/carbon-footprint-of-travel-per-kilometer-by-mode-of-transport-uk/
 
+# multiply the user's distance by two as to assume a return trip
+multiplier: 2
+
 # Carbon is measured in grams of carbon per km
 # Ask tom to change the label names as they are currently linked with the icons
 
