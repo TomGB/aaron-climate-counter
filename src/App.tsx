@@ -62,6 +62,8 @@ function App() {
         distance: Math.round(distanceInKm),
         modeOfTransport: selectedMode,
         carbon: Math.round(carbonResult),
+        transportMultiplier: modesOfTransport?.find(({ type }) => type === selectedMode)?.carbon || 0,
+        assumedDistance: Math.round(config.multiplier * distanceInKm),
       }
       console.log(dataToBeSaved)
       submitGoogleForm(dataToBeSaved)
