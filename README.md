@@ -3,6 +3,9 @@
 available on:
 https://tomgb.github.io/aaron-climate-counter/
 
+responses recorded:
+https://docs.google.com/spreadsheets/d/1SM8IlYevP5Iaomzpy-cPImRRTIoMX8fjs3xGWQy5XCM/edit?usp=sharing
+
 to configure edit the
 `/config.yaml` file and create and merge a PR
 
