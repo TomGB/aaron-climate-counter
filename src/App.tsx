@@ -14,6 +14,20 @@ import calcDistance from "./utils/calcDistance"
 import getConferenceLatLng from "./utils/getConferenceLatLng"
 import {LocationResult} from "./types";
 
+import {
+  FacebookShareButton,
+  LinkedinShareButton,
+  TwitterShareButton,
+  WhatsappShareButton
+} from "react-share";
+
+import {
+  FacebookIcon,
+  LinkedinIcon,
+  TwitterIcon,
+  WhatsappIcon,
+} from "react-share";
+
 const config = loadConfig()
 const { modesOfTransport } = config
 
@@ -22,6 +36,9 @@ if (config.enablePreventRefresh) {
 }
 
 function App() {
+  const queryParams = new URLSearchParams(window.location.search);
+  const co2 = queryParams.get('co2');
+
   const location = {
     label: config.conferenceLocation,
     value: {
@@ -35,10 +52,10 @@ function App() {
   const [startLocation, setStartLocation] = useState<LocationResult | null>(null);
 
   const [distanceInKm, setDistanceInKm] = useState(0)
-  const [carbon, setCarbon] = useState<number|null>(null)
+  const [carbon, setCarbon] = useState<number|null>(co2 ? parseFloat(co2) * 1000 : null)
   const [selectedMode, setSelectedMode] = useState<string|null>(null)
 
-  const [showResult, setShowResult] = useState(false)
+  const [showResult, setShowResult] = useState(!!co2)
 
   useEffect(() => {
     const requestLocationForConference = async () => {
@@ -112,6 +129,12 @@ function App() {
         title={config?.resultText?.replace("@carbon@", `${Math.round((carbon || 0) / 100) / 10}`)}
         subTitle={config.resultSubText}
         extra={[
+          <div>
+            <FacebookShareButton url={window.location.href}><FacebookIcon /></FacebookShareButton>
+            <LinkedinShareButton url={window.location.href}><LinkedinIcon /></LinkedinShareButton>
+            <TwitterShareButton url={window.location.href}><TwitterIcon /></TwitterShareButton>
+            <WhatsappShareButton url={window.location.href}><WhatsappIcon /></WhatsappShareButton>
+          </div>,
           <Button onClick={() => {
             setShowResult(false)
             setStartLocation(null)
