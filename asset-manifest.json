@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/aaron-climate-counter/static/css/main.7b78afe8.css",
-    "main.js": "/aaron-climate-counter/static/js/main.47a5dcdd.js",
+    "main.js": "/aaron-climate-counter/static/js/main.b6fb71a5.js",
     "static/js/787.2a77cb57.chunk.js": "/aaron-climate-counter/static/js/787.2a77cb57.chunk.js",
     "index.html": "/aaron-climate-counter/index.html",
     "main.7b78afe8.css.map": "/aaron-climate-counter/static/css/main.7b78afe8.css.map",
-    "main.47a5dcdd.js.map": "/aaron-climate-counter/static/js/main.47a5dcdd.js.map",
+    "main.b6fb71a5.js.map": "/aaron-climate-counter/static/js/main.b6fb71a5.js.map",
     "787.2a77cb57.chunk.js.map": "/aaron-climate-counter/static/js/787.2a77cb57.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7b78afe8.css",
-    "static/js/main.47a5dcdd.js"
+    "static/js/main.b6fb71a5.js"
   ]
 }
