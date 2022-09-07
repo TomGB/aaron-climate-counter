@@ -72,6 +72,9 @@ function App() {
   const submitForm = async () => {
     if (selectedMode) {
       const carbonResult = await calcCarbon(selectedMode)
+
+      // window.history.pushState("bananas?co2=345")
+
       setShowResult(true)
       const dataToBeSaved = {
         locationOfConference: typeof conferenceLocation === "string" ? conferenceLocation : conferenceLocation?.label,
@@ -123,16 +126,18 @@ function App() {
       )
     }
 
+    const kgsOfCarbon = Math.round((carbon || 0) / 100) / 10
+
     return (
       <Result
         icon={<CloudOutlined />}
-        title={config?.resultText?.replace("@carbon@", `${Math.round((carbon || 0) / 100) / 10}`)}
+        title={config?.resultText?.replace("@carbon@", `${kgsOfCarbon}`)}
         subTitle={config.resultSubText}
         extra={[
           <div>
             <FacebookShareButton url={window.location.href}><FacebookIcon /></FacebookShareButton>
             <LinkedinShareButton url={window.location.href}><LinkedinIcon /></LinkedinShareButton>
-            <TwitterShareButton url={window.location.href}><TwitterIcon /></TwitterShareButton>
+            <TwitterShareButton hashtags={["AWS", "Sustainability"]} title={`I'm at @aerincloud's talk at "AWS Community Summit" and I used ${kgsOfCarbon}kg of co2 to travel here by ${selectedMode}!`} url="https://embue.co.uk"><TwitterIcon /></TwitterShareButton>
             <WhatsappShareButton url={window.location.href}><WhatsappIcon /></WhatsappShareButton>
           </div>,
           <Button onClick={() => {
